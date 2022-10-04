@@ -9,21 +9,18 @@ from typing import Tuple
 from latch import large_task, message, small_task, workflow
 from latch.types import LatchDir
 
+from .types import Sample
+
 
 @large_task
 def megahit(
-    read_dir: LatchDir,
-    sample_name: str,
+    sample: Sample,
     min_count: int,
     k_min: int,
     k_max: int,
     k_step: int,
     min_contig_len: int,
 ) -> LatchDir:
-
-    # Read files
-    read1 = Path(read_dir.local_path, f"{sample_name}_unaligned.fastq.1.gz")
-    read2 = Path(read_dir.local_path, f"{sample_name}_unaligned.fastq.2.gz")
 
     output_dir_name = "MEGAHIT"
     output_dir = Path(output_dir_name).resolve()
@@ -41,13 +38,13 @@ def megahit(
         "--out-dir",
         output_dir_name,
         "--out-prefix",
-        sample_name,
+        sample.sample_name,
         "--min-contig-len",
         str(min_contig_len),
         "-1",
-        str(read1),
+        sample.read1.local_path,
         "-2",
-        str(read2),
+        sample.read2.local_path,
     ]
     message(
         "info",
@@ -59,17 +56,17 @@ def megahit(
     subprocess.run(_megahit_cmd)
 
     return LatchDir(
-        str(output_dir), f"latch:///metamage/{sample_name}/{output_dir_name}"
+        str(output_dir), f"latch:///metamage/{sample.sample_name}/{output_dir_name}"
     )
 
 
 @small_task
 def metaquast(
     assembly_dir: LatchDir,
-    sample_name: str,
+    sample: Sample,
 ) -> LatchDir:
 
-    assembly_name = f"{sample_name}.contigs.fa"
+    assembly_name = f"{sample.sample_name}.contigs.fa"
     assembly_fasta = Path(assembly_dir.local_path, assembly_name)
 
     output_dir_name = "MetaQuast"
@@ -82,7 +79,7 @@ def metaquast(
         "--max-ref-number",
         "0",
         "-l",
-        sample_name,
+        sample.sample_name,
         "-o",
         output_dir_name,
         str(assembly_fasta),
@@ -97,14 +94,13 @@ def metaquast(
     subprocess.run(_metaquast_cmd)
 
     return LatchDir(
-        str(output_dir), f"latch:///metamage/{sample_name}/{output_dir_name}"
+        str(output_dir), f"latch:///metamage/{sample.sample_name}/{output_dir_name}"
     )
 
 
 @workflow
 def assembly_wf(
-    read_dir: LatchDir,
-    sample_name: str,
+    sample: Sample,
     min_count: int,
     k_min: int,
     k_max: int,
@@ -114,14 +110,13 @@ def assembly_wf(
 
     # Assembly
     assembly_dir = megahit(
-        read_dir=read_dir,
-        sample_name=sample_name,
+        sample=sample,
         min_count=min_count,
         k_min=k_min,
         k_max=k_max,
         k_step=k_step,
         min_contig_len=min_contig_len,
     )
-    metassembly_results = metaquast(assembly_dir=assembly_dir, sample_name=sample_name)
+    metassembly_results = metaquast(assembly_dir=assembly_dir, sample=sample)
 
     return assembly_dir, metassembly_results
