@@ -40,7 +40,7 @@ def maggie(
     )
 
     assembly_dir, metassembly_results = assembly_wf(
-        sample=sample,
+        sample=samples,
         min_count=min_count,
         k_min=k_min,
         k_max=k_max,
@@ -49,7 +49,7 @@ def maggie(
     )
 
     # Binning
-    binning_results = binning_wf(sample=sample, assembly_dir=assembly_dir)
+    binning_results = binning_wf(sample=samples, assembly_dir=assembly_dir)
 
     return [
         kaiju2table,

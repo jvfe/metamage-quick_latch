@@ -3,48 +3,88 @@ Read assembly and evaluation for metagenomics data
 """
 
 import subprocess
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Tuple
+from typing import List, Tuple
 
-from latch import large_task, message, small_task, workflow
+from dataclasses_json import dataclass_json
+from latch import large_task, map_task, message, small_task, workflow
 from latch.types import LatchDir
 
 from .types import Sample
 
 
-@large_task
-def megahit(
-    sample: Sample,
+@dataclass
+@dataclass_json
+class MegaHitInput:
+    read_data: Sample
+    min_count: int
+    k_min: int
+    k_max: int
+    k_step: int
+    min_contig_len: int
+
+
+@dataclass
+@dataclass_json
+class MegaHitOut:
+    sample_name: str
+    assembly_data: LatchDir
+
+
+@small_task
+def organize_megahit_inputs(
+    samples: List[Sample],
     min_count: int,
     k_min: int,
     k_max: int,
     k_step: int,
     min_contig_len: int,
-) -> LatchDir:
+) -> List[MegaHitInput]:
 
+    inputs = []
+    for sample in samples:
+        cur_input = MegaHitInput(
+            read_data=sample,
+            min_count=min_count,
+            k_min=k_min,
+            k_max=k_max,
+            k_step=k_step,
+            min_contig_len=min_contig_len,
+        )
+
+        inputs.append(cur_input)
+
+    return inputs
+
+
+@large_task
+def megahit(megahit_input: MegaHitInput) -> MegaHitOut:
+
+    sample_name = megahit_input.read_data.sample_name
     output_dir_name = "MEGAHIT"
     output_dir = Path(output_dir_name).resolve()
 
     _megahit_cmd = [
         "/root/megahit",
         "--min-count",
-        str(min_count),
+        str(megahit_input.min_count),
         "--k-min",
-        str(k_min),
+        str(megahit_input.k_min),
         "--k-max",
-        str(k_max),
+        str(megahit_input.k_max),
         "--k-step",
-        str(k_step),
+        str(megahit_input.k_step),
         "--out-dir",
         output_dir_name,
         "--out-prefix",
-        sample.sample_name,
+        sample_name,
         "--min-contig-len",
-        str(min_contig_len),
+        str(megahit_input.min_contig_len),
         "-1",
-        sample.read1.local_path,
+        megahit_input.read_data.read1.local_path,
         "-2",
-        sample.read2.local_path,
+        megahit_input.read_data.read2.local_path,
     ]
     message(
         "info",
@@ -55,19 +95,20 @@ def megahit(
     )
     subprocess.run(_megahit_cmd)
 
-    return LatchDir(
-        str(output_dir), f"latch:///metamage/{sample.sample_name}/{output_dir_name}"
+    return MegaHitOut(
+        sample_name=sample_name,
+        assembly_data=LatchDir(
+            str(output_dir), f"latch:///metamage/{sample_name}/{output_dir_name}"
+        ),
     )
 
 
 @small_task
-def metaquast(
-    assembly_dir: LatchDir,
-    sample: Sample,
-) -> LatchDir:
+def metaquast(megahit_out: MegaHitOut) -> LatchDir:
 
-    assembly_name = f"{sample.sample_name}.contigs.fa"
-    assembly_fasta = Path(assembly_dir.local_path, assembly_name)
+    sample_name = megahit_out.sample_name
+    assembly_name = f"{sample_name}.contigs.fa"
+    assembly_fasta = Path(megahit_out.assembly_data.local_path, assembly_name)
 
     output_dir_name = "MetaQuast"
     output_dir = Path(output_dir_name).resolve()
@@ -79,7 +120,7 @@ def metaquast(
         "--max-ref-number",
         "0",
         "-l",
-        sample.sample_name,
+        sample_name,
         "-o",
         output_dir_name,
         str(assembly_fasta),
@@ -94,29 +135,32 @@ def metaquast(
     subprocess.run(_metaquast_cmd)
 
     return LatchDir(
-        str(output_dir), f"latch:///metamage/{sample.sample_name}/{output_dir_name}"
+        str(output_dir), f"latch:///metamage/{sample_name}/{output_dir_name}"
     )
 
 
 @workflow
 def assembly_wf(
-    sample: Sample,
+    samples: List[Sample],
     min_count: int,
     k_min: int,
     k_max: int,
     k_step: int,
     min_contig_len: int,
-) -> Tuple[LatchDir, LatchDir]:
+) -> Tuple[MegaHitOut, LatchDir]:
 
-    # Assembly
-    assembly_dir = megahit(
-        sample=sample,
+    megahit_inputs = organize_megahit_inputs(
+        samples=samples,
         min_count=min_count,
         k_min=k_min,
         k_max=k_max,
         k_step=k_step,
         min_contig_len=min_contig_len,
     )
-    metassembly_results = metaquast(assembly_dir=assembly_dir, sample=sample)
 
-    return assembly_dir, metassembly_results
+    # Assembly
+    megahit_outs = map_task(megahit)(megahit_input=megahit_inputs)
+
+    metassembly_results = map_task(metaquast)(megahit_out=megahit_outs)
+
+    return megahit_outs, metassembly_results
