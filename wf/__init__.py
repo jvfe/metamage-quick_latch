@@ -13,7 +13,7 @@ from .types import Sample, TaxonRank
 
 @workflow(maggie_DOCS)
 def maggie(
-    sample: Sample,
+    samples: List[Sample],
     kaiju_ref_db: LatchFile,
     kaiju_ref_nodes: LatchFile,
     kaiju_ref_names: LatchFile,
@@ -32,7 +32,7 @@ def maggie(
 
     # Kaiju taxonomic classification
     kaiju2table, krona_plot = kaiju_wf(
-        sample=sample,
+        sample=samples,
         kaiju_ref_db=kaiju_ref_db,
         kaiju_ref_nodes=kaiju_ref_nodes,
         kaiju_ref_names=kaiju_ref_names,
@@ -63,11 +63,18 @@ LaunchPlan(
     maggie,  # workflow name
     "Example Metagenome (Crohn's disease gut microbiome)",  # name of test data
     {
-        "sample": Sample(
-            sample_name="SRR579292",
-            read1=LatchFile("s3://latch-public/test-data/4318/SRR579292_1.fastq"),
-            read2=LatchFile("s3://latch-public/test-data/4318/SRR579292_2.fastq"),
-        ),
+        "samples": [
+            Sample(
+                sample_name="SRR579291",
+                read1=LatchFile("s3://latch-public/test-data/4318/SRR579291_1.fastq"),
+                read2=LatchFile("s3://latch-public/test-data/4318/SRR579291_2.fastq"),
+            ),
+            Sample(
+                sample_name="SRR579292",
+                read1=LatchFile("s3://latch-public/test-data/4318/SRR579292_1.fastq"),
+                read2=LatchFile("s3://latch-public/test-data/4318/SRR579292_2.fastq"),
+            ),
+        ],
         "kaiju_ref_db": LatchFile(
             "s3://latch-public/test-data/4318/kaiju_db_plasmids.fmi"
         ),

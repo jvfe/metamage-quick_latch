@@ -13,7 +13,7 @@ maggie_DOCS = LatchMetadata(
 )
 
 maggie_DOCS.parameters = {
-    "sample": LatchParameter(
+    "samples": LatchParameter(
         display_name="Sample data",
         description="Paired-end FASTQ files",
         batch_table_column=True,
