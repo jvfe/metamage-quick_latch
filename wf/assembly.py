@@ -14,8 +14,8 @@ from latch.types import LatchDir
 from .types import Sample
 
 
-@dataclass
 @dataclass_json
+@dataclass
 class MegaHitInput:
     read_data: Sample
     min_count: int
@@ -25,15 +25,15 @@ class MegaHitInput:
     min_contig_len: int
 
 
-@dataclass
 @dataclass_json
+@dataclass
 class MegaHitOut:
     sample_name: str
     assembly_data: LatchDir
 
 
-@dataclass
 @dataclass_json
+@dataclass
 class AssemblyOut(MegaHitOut):
     evaluation: LatchDir
 

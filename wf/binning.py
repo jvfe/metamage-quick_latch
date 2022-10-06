@@ -12,22 +12,22 @@ from .assembly import AssemblyOut
 from .types import Sample
 
 
-@dataclass
 @dataclass_json
+@dataclass
 class BwAlignInput:
     assembly_index: LatchDir
     read_data: Sample
 
 
-@dataclass
 @dataclass_json
+@dataclass
 class JgiInput:
     assembly_bam: LatchFile
     sample_name: str
 
 
-@dataclass
 @dataclass_json
+@dataclass
 class MetaBatInput:
     sample_name: str
     assembly_data: LatchDir

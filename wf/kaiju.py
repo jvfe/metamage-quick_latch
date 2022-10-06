@@ -14,8 +14,8 @@ from latch.types import LatchFile
 from .types import Sample, TaxonRank
 
 
-@dataclass
 @dataclass_json
+@dataclass
 class KaijuSample:
     read_data: Sample
     kaiju_ref_db: LatchFile
@@ -25,8 +25,8 @@ class KaijuSample:
     taxon_rank: TaxonRank
 
 
-@dataclass
 @dataclass_json
+@dataclass
 class KaijuOut:
     sample_name: str
     kaiju_out: LatchFile
@@ -36,8 +36,8 @@ class KaijuOut:
     taxon_rank: TaxonRank
 
 
-@dataclass
 @dataclass_json
+@dataclass
 class KronaInput:
     sample_name: str
     krona_txt: LatchFile
