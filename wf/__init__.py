@@ -63,7 +63,7 @@ def maggie(
     )
 
     # Binning
-    binning_results = binning_wf(samples=samples, assembly_dir=assembly_dirs)
+    binning_results = binning_wf(samples=samples, megahit_out=assembly_dirs)
 
     organized_outputs = organize_final_outputs(
         kaiju_results=krona_plots,

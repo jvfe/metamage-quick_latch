@@ -55,9 +55,7 @@ def bowtie_assembly_build(megahit_out: AssemblyOut) -> LatchDir:
 
     subprocess.run(_bt_idx_cmd)
 
-    return LatchDir(
-        str(output_dir), f"latch:///metamage/{sample_name}/{output_dir_name}"
-    )
+    return LatchDir(str(output_dir), f"latch:///maggie/{sample_name}/{output_dir_name}")
 
 
 @small_task
@@ -75,7 +73,7 @@ def organize_bwalign_inputs(
 
 
 @large_task
-def bowtie_assembly_align(bwalign_input: BwAlignInput) -> LatchFile:
+def bowtie_assembly_align(bwalign_input: BwAlignInput) -> JgiInput:
 
     sample_name = bwalign_input.read_data.sample_name
     output_file_name = f"{sample_name}_assembly_sorted.bam"
@@ -127,7 +125,7 @@ def bowtie_assembly_align(bwalign_input: BwAlignInput) -> LatchFile:
 
     return JgiInput(
         assembly_bam=LatchFile(
-            str(output_file), f"latch:///metamage/{sample_name}/{output_file_name}"
+            str(output_file), f"latch:///maggie/{sample_name}/{output_file_name}"
         ),
         sample_name=sample_name,
     )
@@ -150,7 +148,7 @@ def summarize_contig_depths(jgi_input: JgiInput) -> LatchFile:
     subprocess.run(_jgi_cmd)
 
     return LatchFile(
-        str(output_file), f"latch:///metamage/{sample_name}/{output_file_name}"
+        str(output_file), f"latch:///maggie/{sample_name}/{output_file_name}"
     )
 
 
@@ -158,7 +156,7 @@ def summarize_contig_depths(jgi_input: JgiInput) -> LatchFile:
 def organize_metabat_inputs(
     assembly_data: List[AssemblyOut],
     depth_files: List[LatchFile],
-) -> MetaBatInput:
+) -> List[MetaBatInput]:
 
     inputs = []
     for assembly, depth_file in zip(assembly_data, depth_files):
@@ -201,7 +199,7 @@ def metabat2(metabat_input: MetaBatInput) -> LatchDir:
     )
     subprocess.run(_metabat_cmd)
 
-    return LatchDir(str(output_dir), f"latch:///metamage/{sample_name}/METABAT/")
+    return LatchDir(str(output_dir), f"latch:///maggie/{sample_name}/METABAT/")
 
 
 @workflow
