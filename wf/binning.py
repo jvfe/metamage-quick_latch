@@ -8,7 +8,7 @@ from dataclasses_json import dataclass_json
 from latch import large_task, map_task, message, small_task, workflow
 from latch.types import LatchDir, LatchFile
 
-from .assembly import MegaHitOut
+from .assembly import AssemblyOut
 from .types import Sample
 
 
@@ -35,7 +35,7 @@ class MetaBatInput:
 
 
 @large_task
-def bowtie_assembly_build(megahit_out: MegaHitOut) -> LatchDir:
+def bowtie_assembly_build(megahit_out: AssemblyOut) -> LatchDir:
 
     sample_name = megahit_out.sample_name
     assembly_name = f"{sample_name}.contigs.fa"
@@ -156,7 +156,7 @@ def summarize_contig_depths(jgi_input: JgiInput) -> LatchFile:
 
 @small_task
 def organize_metabat_inputs(
-    assembly_data: List[MegaHitOut],
+    assembly_data: List[AssemblyOut],
     depth_files: List[LatchFile],
 ) -> MetaBatInput:
 
@@ -205,7 +205,7 @@ def metabat2(metabat_input: MetaBatInput) -> LatchDir:
 
 
 @workflow
-def binning_wf(samples: List[Sample], megahit_out: List[MegaHitOut]) -> List[LatchDir]:
+def binning_wf(samples: List[Sample], megahit_out: List[AssemblyOut]) -> List[LatchDir]:
 
     # Binning preparation
     built_assembly_idxs = map_task(bowtie_assembly_build)(megahit_out=megahit_out)

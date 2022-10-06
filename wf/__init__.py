@@ -1,14 +1,28 @@
+import itertools
 from typing import List, Union
 
-from latch import workflow
+from latch import small_task, workflow
 from latch.resources.launch_plan import LaunchPlan
 from latch.types import LatchDir, LatchFile
 
-from .assembly import assembly_wf
+from .assembly import AssemblyOut, assembly_wf
 from .binning import binning_wf
 from .docs import maggie_DOCS
 from .kaiju import kaiju_wf
 from .types import Sample, TaxonRank
+
+
+@small_task
+def organize_final_outputs(
+    kaiju_results: List[LatchFile],
+    assembly_data: List[AssemblyOut],
+    binning_results: List[LatchDir],
+) -> List[Union[LatchFile, LatchDir]]:
+
+    metassembly_results = [result.evaluation for result in assembly_data]
+    all_outputs = [kaiju_results, metassembly_results, binning_results]
+
+    return list(itertools.chain(*all_outputs))
 
 
 @workflow(maggie_DOCS)
@@ -31,16 +45,16 @@ def maggie(
     """
 
     # Kaiju taxonomic classification
-    kaiju2table, krona_plot = kaiju_wf(
-        sample=samples,
+    krona_plots = kaiju_wf(
+        samples=samples,
         kaiju_ref_db=kaiju_ref_db,
         kaiju_ref_nodes=kaiju_ref_nodes,
         kaiju_ref_names=kaiju_ref_names,
         taxon_rank=taxon_rank,
     )
 
-    assembly_dir, metassembly_results = assembly_wf(
-        sample=samples,
+    assembly_dirs = assembly_wf(
+        samples=samples,
         min_count=min_count,
         k_min=k_min,
         k_max=k_max,
@@ -49,14 +63,15 @@ def maggie(
     )
 
     # Binning
-    binning_results = binning_wf(sample=samples, assembly_dir=assembly_dir)
+    binning_results = binning_wf(samples=samples, assembly_dir=assembly_dirs)
 
-    return [
-        kaiju2table,
-        krona_plot,
-        metassembly_results,
-        binning_results,
-    ]
+    organized_outputs = organize_final_outputs(
+        kaiju_results=krona_plots,
+        assembly_data=assembly_dirs,
+        binning_results=binning_results,
+    )
+
+    return organized_outputs
 
 
 LaunchPlan(
@@ -76,7 +91,7 @@ LaunchPlan(
             ),
         ],
         "kaiju_ref_db": LatchFile(
-            "s3://latch-public/test-data/4318/kaiju_db_plasmids.fmi"
+            "s3://latch-public/test-data/4318/kaiju_db_nr_2021-02-24.fmi"
         ),
         "kaiju_ref_nodes": LatchFile("s3://latch-public/test-data/4318/nodes.dmp"),
         "kaiju_ref_names": LatchFile("s3://latch-public/test-data/4318/names.dmp"),

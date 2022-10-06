@@ -32,6 +32,12 @@ class MegaHitOut:
     assembly_data: LatchDir
 
 
+@dataclass
+@dataclass_json
+class AssemblyOut(MegaHitOut):
+    evaluation: LatchDir
+
+
 @small_task
 def organize_megahit_inputs(
     samples: List[Sample],
@@ -134,8 +140,12 @@ def metaquast(megahit_out: MegaHitOut) -> LatchDir:
     )
     subprocess.run(_metaquast_cmd)
 
-    return LatchDir(
-        str(output_dir), f"latch:///metamage/{sample_name}/{output_dir_name}"
+    return AssemblyOut(
+        sample_name=sample_name,
+        assembly_data=megahit_out.assembly_data,
+        evaluation=LatchDir(
+            str(output_dir), f"latch:///metamage/{sample_name}/{output_dir_name}"
+        ),
     )
 
 
@@ -147,7 +157,7 @@ def assembly_wf(
     k_max: int,
     k_step: int,
     min_contig_len: int,
-) -> Tuple[MegaHitOut, LatchDir]:
+) -> List[AssemblyOut]:
 
     megahit_inputs = organize_megahit_inputs(
         samples=samples,
@@ -161,6 +171,6 @@ def assembly_wf(
     # Assembly
     megahit_outs = map_task(megahit)(megahit_input=megahit_inputs)
 
-    metassembly_results = map_task(metaquast)(megahit_out=megahit_outs)
+    assembly_outs = map_task(metaquast)(megahit_out=megahit_outs)
 
-    return megahit_outs, metassembly_results
+    return assembly_outs

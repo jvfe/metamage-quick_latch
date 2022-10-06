@@ -108,35 +108,35 @@ def taxonomy_classification_task(kaiju_input: KaijuSample) -> KaijuOut:
     )
 
 
-@small_task
-def kaiju2table_task(kaiju_out: KaijuOut) -> LatchFile:
-    """Convert Kaiju output to TSV format"""
+# @small_task
+# def kaiju2table_task(kaiju_out: KaijuOut) -> LatchFile:
+#     """Convert Kaiju output to TSV format"""
 
-    sample_name = kaiju_out.sample_name
-    output_name = f"{sample_name}_kaiju.tsv"
-    kaijutable_tsv = Path(output_name).resolve()
+#     sample_name = kaiju_out.sample_name
+#     output_name = f"{sample_name}_kaiju.tsv"
+#     kaijutable_tsv = Path(output_name).resolve()
 
-    _kaiju2table_cmd = [
-        "kaiju2table",
-        "-t",
-        kaiju_out.kaiju_ref_nodes.local_path,
-        "-n",
-        kaiju_out.kaiju_ref_names.local_path,
-        "-r",
-        kaiju_out.taxon_rank.value,
-        "-p",
-        "-e",
-        "-o",
-        str(kaijutable_tsv),
-        kaiju_out.kaiju_out.local_path,
-    ]
+#     _kaiju2table_cmd = [
+#         "kaiju2table",
+#         "-t",
+#         kaiju_out.kaiju_ref_nodes.local_path,
+#         "-n",
+#         kaiju_out.kaiju_ref_names.local_path,
+#         "-r",
+#         kaiju_out.taxon_rank.value,
+#         "-p",
+#         "-e",
+#         "-o",
+#         str(kaijutable_tsv),
+#         kaiju_out.kaiju_out.local_path,
+#     ]
 
-    subprocess.run(_kaiju2table_cmd)
+#     subprocess.run(_kaiju2table_cmd)
 
-    return LatchFile(
-        str(kaijutable_tsv),
-        f"latch:///metamage/{sample_name}/kaiju/{output_name}",
-    )
+#     return LatchFile(
+#         str(kaijutable_tsv),
+#         f"latch:///metamage/{sample_name}/kaiju/{output_name}",
+#     )
 
 
 @small_task
@@ -192,15 +192,15 @@ def plot_krona_task(krona_input: KronaInput) -> LatchFile:
 
 @workflow
 def kaiju_wf(
-    sample: List[Sample],
+    samples: List[Sample],
     kaiju_ref_db: LatchFile,
     kaiju_ref_nodes: LatchFile,
     kaiju_ref_names: LatchFile,
     taxon_rank: TaxonRank,
-) -> Tuple[LatchFile, LatchFile]:
+) -> List[LatchFile]:
 
     kaiju_inputs = organize_kaiju_inputs(
-        sample=sample,
+        samples=samples,
         kaiju_ref_db=kaiju_ref_db,
         kaiju_ref_nodes=kaiju_ref_nodes,
         kaiju_ref_names=kaiju_ref_names,
@@ -208,8 +208,8 @@ def kaiju_wf(
     )
 
     kaiju_outs = map_task(taxonomy_classification_task)(kaiju_input=kaiju_inputs)
-    kaiju2table_out = map_task(kaiju2table_task)(kaiju_out=kaiju_outs)
     kaiju2krona_out = map_task(kaiju2krona_task)(kaiju_out=kaiju_outs)
-    krona_plot = map_task(plot_krona_task)(krona_input=kaiju2krona_out)
+    krona_plots = map_task(plot_krona_task)(krona_input=kaiju2krona_out)
 
-    return kaiju2table_out, krona_plot
+    # return kaiju2table_out, krona_plot
+    return krona_plots
