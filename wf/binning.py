@@ -83,7 +83,7 @@ def bowtie_assembly_align(bwalign_input: BwAlignInput) -> JgiInput:
     _bt_cmd = [
         "bowtie2/bowtie2",
         "-x",
-        f"{bwalign_input.assembly_idx.local_path}/{sample_name}",
+        f"{bwalign_input.assembly_index.local_path}/{sample_name}",
         "-1",
         bwalign_input.read_data.read1.local_path,
         "-2",
