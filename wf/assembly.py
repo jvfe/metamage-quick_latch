@@ -104,7 +104,7 @@ def megahit(megahit_input: MegaHitInput) -> MegaHitOut:
     return MegaHitOut(
         sample_name=sample_name,
         assembly_data=LatchDir(
-            str(output_dir), f"latch:///maggie/{sample_name}/{output_dir_name}"
+            str(output_dir), f"latch:///megs/{sample_name}/{output_dir_name}"
         ),
     )
 
@@ -144,7 +144,7 @@ def metaquast(megahit_out: MegaHitOut) -> AssemblyOut:
         sample_name=sample_name,
         assembly_data=megahit_out.assembly_data,
         evaluation=LatchDir(
-            str(output_dir), f"latch:///maggie/{sample_name}/{output_dir_name}"
+            str(output_dir), f"latch:///megs/{sample_name}/{output_dir_name}"
         ),
     )
 

@@ -55,7 +55,7 @@ def bowtie_assembly_build(megahit_out: AssemblyOut) -> LatchDir:
 
     subprocess.run(_bt_idx_cmd)
 
-    return LatchDir(str(output_dir), f"latch:///maggie/{sample_name}/{output_dir_name}")
+    return LatchDir(str(output_dir), f"latch:///megs/{sample_name}/{output_dir_name}")
 
 
 @small_task
@@ -125,7 +125,7 @@ def bowtie_assembly_align(bwalign_input: BwAlignInput) -> JgiInput:
 
     return JgiInput(
         assembly_bam=LatchFile(
-            str(output_file), f"latch:///maggie/{sample_name}/{output_file_name}"
+            str(output_file), f"latch:///megs/{sample_name}/{output_file_name}"
         ),
         sample_name=sample_name,
     )
@@ -148,7 +148,7 @@ def summarize_contig_depths(jgi_input: JgiInput) -> LatchFile:
     subprocess.run(_jgi_cmd)
 
     return LatchFile(
-        str(output_file), f"latch:///maggie/{sample_name}/{output_file_name}"
+        str(output_file), f"latch:///megs/{sample_name}/{output_file_name}"
     )
 
 
@@ -199,7 +199,7 @@ def metabat2(metabat_input: MetaBatInput) -> LatchDir:
     )
     subprocess.run(_metabat_cmd)
 
-    return LatchDir(str(output_dir), f"latch:///maggie/{sample_name}/METABAT/")
+    return LatchDir(str(output_dir), f"latch:///megs/{sample_name}/METABAT/")
 
 
 @workflow
