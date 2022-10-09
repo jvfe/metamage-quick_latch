@@ -73,7 +73,7 @@ def organize_bwalign_inputs(
 
 
 @large_task
-def bowtie_assembly_align(bwalign_input: BwAlignInput) -> JgiInput:
+def bowtie_assembly_align(bwalign_input: BwAlignInput) -> LatchFile:
 
     sample_name = bwalign_input.read_data.sample_name
     output_file_name = f"{sample_name}_assembly_sorted.bam"
@@ -123,12 +123,24 @@ def bowtie_assembly_align(bwalign_input: BwAlignInput) -> JgiInput:
         stdin=sam_convert_out.stdout,
     )
 
-    return JgiInput(
-        assembly_bam=LatchFile(
-            str(output_file), f"latch:///megs/{sample_name}/{output_file_name}"
-        ),
-        sample_name=sample_name,
+    return LatchFile(
+        str(output_file), f"latch:///megs/{sample_name}/{output_file_name}"
     )
+
+
+@small_task
+def organize_jgi_inputs(
+    samples: List[Sample], assembly_bams: List[LatchFile]
+) -> List[JgiInput]:
+
+    jgi_ins = []
+
+    for sample, assembly_bam in zip(samples, assembly_bams):
+
+        cur_jgi_in = JgiInput(sample_name=sample.sample_name, assembly_bam=assembly_bam)
+        jgi_ins.append(cur_jgi_in)
+
+    return jgi_ins
 
 
 @small_task
@@ -214,7 +226,9 @@ def binning_wf(samples: List[Sample], megahit_out: List[AssemblyOut]) -> List[La
 
     aligned_to_assembly = map_task(bowtie_assembly_align)(bwalign_input=bwalign_inputs)
 
-    depth_files = map_task(summarize_contig_depths)(jgi_input=aligned_to_assembly)
+    jgi_inputs = organize_jgi_inputs(samples=samples, assembly_bams=aligned_to_assembly)
+
+    depth_files = map_task(summarize_contig_depths)(jgi_input=jgi_inputs)
 
     metabat_inputs = organize_metabat_inputs(
         assembly_data=megahit_out, depth_files=depth_files

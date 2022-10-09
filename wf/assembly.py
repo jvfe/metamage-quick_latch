@@ -65,7 +65,7 @@ def organize_megahit_inputs(
 
 
 @large_task
-def megahit(megahit_input: MegaHitInput) -> MegaHitOut:
+def megahit(megahit_input: MegaHitInput) -> LatchDir:
 
     sample_name = megahit_input.read_data.sample_name
     output_dir_name = "MEGAHIT"
@@ -101,16 +101,24 @@ def megahit(megahit_input: MegaHitInput) -> MegaHitOut:
     )
     subprocess.run(_megahit_cmd)
 
-    return MegaHitOut(
-        sample_name=sample_name,
-        assembly_data=LatchDir(
-            str(output_dir), f"latch:///megs/{sample_name}/{output_dir_name}"
-        ),
-    )
+    return LatchDir(str(output_dir), f"latch:///megs/{sample_name}/{output_dir_name}")
 
 
 @small_task
-def metaquast(megahit_out: MegaHitOut) -> AssemblyOut:
+def organize_megahit_outs(
+    samples: List[Sample], assembly_data: List[LatchDir]
+) -> List[MegaHitOut]:
+
+    outs = []
+    for sample, assembly in zip(samples, assembly_data):
+        cur_out = MegaHitOut(sample_name=sample.sample_name, assembly_data=assembly)
+        outs.append(cur_out)
+
+    return outs
+
+
+@small_task
+def metaquast(megahit_out: MegaHitOut) -> LatchDir:
 
     sample_name = megahit_out.sample_name
     assembly_name = f"{sample_name}.contigs.fa"
@@ -140,13 +148,26 @@ def metaquast(megahit_out: MegaHitOut) -> AssemblyOut:
     )
     subprocess.run(_metaquast_cmd)
 
-    return AssemblyOut(
-        sample_name=sample_name,
-        assembly_data=megahit_out.assembly_data,
-        evaluation=LatchDir(
-            str(output_dir), f"latch:///megs/{sample_name}/{output_dir_name}"
-        ),
-    )
+    return LatchDir(str(output_dir), f"latch:///megs/{sample_name}/{output_dir_name}")
+
+
+@small_task
+def organize_assembly_outs(
+    megahit_outs: List[MegaHitOut], metaquast_results: List[LatchDir]
+) -> List[AssemblyOut]:
+
+    outs = []
+
+    for assembly, evaluation in zip(megahit_outs, metaquast_results):
+
+        cur_out = AssemblyOut(
+            sample_name=assembly.sample_name,
+            assembly_data=assembly.assembly_data,
+            evaluation=evaluation,
+        )
+        outs.append(cur_out)
+
+    return outs
 
 
 @workflow
@@ -169,8 +190,12 @@ def assembly_wf(
     )
 
     # Assembly
-    megahit_outs = map_task(megahit)(megahit_input=megahit_inputs)
+    assembly_data = map_task(megahit)(megahit_input=megahit_inputs)
 
-    assembly_outs = map_task(metaquast)(megahit_out=megahit_outs)
+    megahit_outs = organize_megahit_outs(samples=samples, assembly_data=assembly_data)
 
-    return assembly_outs
+    metaquast_results = map_task(metaquast)(megahit_out=megahit_outs)
+
+    return organize_assembly_outs(
+        megahit_outs=megahit_outs, metaquast_results=metaquast_results
+    )

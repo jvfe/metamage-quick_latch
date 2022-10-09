@@ -1,8 +1,10 @@
+import itertools
+from dataclasses import dataclass
 from typing import List, Union
 
+from dataclasses_json import dataclass_json
 from latch import small_task, workflow
-
-# from latch.functions.operators import combine
+from latch.functions.operators import _combine
 from latch.resources.launch_plan import LaunchPlan
 from latch.types import LatchDir, LatchFile
 
@@ -13,19 +15,30 @@ from .kaiju import kaiju_wf
 from .types import Sample, TaxonRank
 
 
+@dataclass_json
+@dataclass
+class WfResults:
+    # taxonomy_results: List[LatchFile]
+    assembly_results: List[LatchDir]
+    binning_results: List[LatchDir]
+
+
 @small_task
 def organize_final_outputs(
     # kaiju_results: List[LatchFile],
-    assembly_data: List[AssemblyOut],
-    # binning_results: List[LatchDir],
-) -> List[Union[LatchFile, LatchDir]]:
+    assembly_results: List[AssemblyOut],
+    binning_results: List[LatchDir],
+) -> WfResults:
 
-    metassembly_results = [result.evaluation for result in assembly_data]
-    # all_outputs = _combine(metassembly_results, kaiju_results)
-    # all_outputs = _combine(intermed, binning_results)
+    metaquast_results = [
+        assembly_result.evaluation for assembly_result in assembly_results
+    ]
 
-    # return all_outputs
-    return metassembly_results
+    return WfResults(
+        # taxonomy_results=kaiju_results,
+        assembly_results=metaquast_results,
+        binning_results=binning_results,
+    )
 
 
 @workflow(megs_DOCS)
@@ -40,7 +53,7 @@ def megs(
     k_max: int = 141,
     k_step: int = 12,
     min_contig_len: int = 200,
-) -> List[Union[LatchFile, LatchDir]]:
+) -> WfResults:
     """Metagenomic assembly with MEGAHit
 
     megs
@@ -51,11 +64,11 @@ def megs(
 
     # Kaiju taxonomic classification
     # krona_plots = kaiju_wf(
-    #     samples=samples,
-    #     kaiju_ref_db=kaiju_ref_db,
-    #     kaiju_ref_nodes=kaiju_ref_nodes,
-    #     kaiju_ref_names=kaiju_ref_names,
-    #     taxon_rank=taxon_rank,
+    # samples=samples,
+    # kaiju_ref_db=kaiju_ref_db,
+    # kaiju_ref_nodes=kaiju_ref_nodes,
+    # kaiju_ref_names=kaiju_ref_names,
+    # taxon_rank=taxon_rank,
     # )
 
     assembly_dirs = assembly_wf(
@@ -68,12 +81,12 @@ def megs(
     )
 
     # Binning
-    # binning_results = binning_wf(samples=samples, megahit_out=assembly_dirs)
+    binning_results = binning_wf(samples=samples, megahit_out=assembly_dirs)
 
     organized_outputs = organize_final_outputs(
         # kaiju_results=krona_plots,
-        assembly_data=assembly_dirs,
-        # binning_results=binning_results,
+        assembly_results=assembly_dirs,
+        binning_results=binning_results,
     )
 
     return organized_outputs
@@ -96,7 +109,7 @@ LaunchPlan(
             ),
         ],
         # "kaiju_ref_db": LatchFile(
-        # "s3://latch-public/test-data/4318/kaiju_db_nr_2021-02-24.fmi"
+        #     "s3://latch-public/test-data/4318/kaiju_db_nr_2021-02-24.fmi"
         # ),
         # "kaiju_ref_nodes": LatchFile("s3://latch-public/test-data/4318/nodes.dmp"),
         # "kaiju_ref_names": LatchFile("s3://latch-public/test-data/4318/names.dmp"),

@@ -20,7 +20,6 @@ class KaijuSample:
     read_data: Sample
     kaiju_ref_db: LatchFile
     kaiju_ref_nodes: LatchFile
-    kaiju_ref_nodes: LatchFile
     kaiju_ref_names: LatchFile
     taxon_rank: TaxonRank
 
@@ -30,7 +29,6 @@ class KaijuSample:
 class KaijuOut:
     sample_name: str
     kaiju_out: LatchFile
-    kaiju_ref_nodes: LatchFile
     kaiju_ref_nodes: LatchFile
     kaiju_ref_names: LatchFile
     taxon_rank: TaxonRank
@@ -68,7 +66,7 @@ def organize_kaiju_inputs(
 
 
 @large_task
-def taxonomy_classification_task(kaiju_input: KaijuSample) -> KaijuOut:
+def taxonomy_classification_task(kaiju_input: KaijuSample) -> LatchFile:
     """Classify metagenomic reads with Kaiju"""
 
     sample_name = kaiju_input.read_data.sample_name
@@ -99,15 +97,27 @@ def taxonomy_classification_task(kaiju_input: KaijuSample) -> KaijuOut:
     )
     subprocess.run(_kaiju_cmd)
 
-    return KaijuOut(
-        sample_name=sample_name,
-        kaiju_out=LatchFile(
-            str(kaiju_out), f"latch:///megs/{sample_name}/kaiju/{output_name}"
-        ),
-        kaiju_ref_nodes=kaiju_input.kaiju_ref_nodes,
-        kaiju_ref_names=kaiju_input.kaiju_ref_names,
-        taxon_rank=kaiju_input.taxon_rank,
-    )
+    return LatchFile(str(kaiju_out), f"latch:///megs/{sample_name}/kaiju/{output_name}")
+
+
+@small_task
+def organize_kaiju_outs(
+    kaiju_inputs: List[KaijuSample], kaiju_outs: List[LatchFile]
+) -> List[KaijuOut]:
+
+    outputs = []
+
+    for kaiju_input, kaiju_out in zip(kaiju_inputs, kaiju_outs):
+        cur_output = KaijuOut(
+            sample_name=kaiju_input.read_data.sample_name,
+            kaiju_out=kaiju_out,
+            kaiju_ref_nodes=kaiju_input.kaiju_ref_nodes,
+            kaiju_ref_names=kaiju_input.kaiju_ref_names,
+            taxon_rank=kaiju_input.taxon_rank,
+        )
+        outputs.append(cur_output)
+
+    return outputs
 
 
 # @small_task
@@ -142,7 +152,7 @@ def taxonomy_classification_task(kaiju_input: KaijuSample) -> KaijuOut:
 
 
 @small_task
-def kaiju2krona_task(kaiju_out: KaijuOut) -> KronaInput:
+def kaiju2krona_task(kaiju_out: KaijuOut) -> LatchFile:
     """Convert Kaiju output to Krona-readable format"""
 
     sample_name = kaiju_out.sample_name
@@ -163,12 +173,22 @@ def kaiju2krona_task(kaiju_out: KaijuOut) -> KronaInput:
 
     subprocess.run(_kaiju2krona_cmd)
 
-    return KronaInput(
-        sample_name=sample_name,
-        krona_txt=LatchFile(
-            str(krona_txt), f"latch:///megs/{sample_name}/kaiju/{output_name}"
-        ),
-    )
+    return LatchFile(str(krona_txt), f"latch:///megs/{sample_name}/kaiju/{output_name}")
+
+
+@small_task
+def organize_krona_inputs(
+    samples: List[Sample], krona_txts: List[LatchFile]
+) -> List[KronaInput]:
+
+    krona_ins = []
+
+    for sample, krona_txt in zip(samples, krona_txts):
+
+        cur_in = KronaInput(sample_name=sample.sample_name, krona_txt=krona_txt)
+        krona_ins.append(cur_in)
+
+    return krona_ins
 
 
 @small_task
@@ -209,9 +229,17 @@ def kaiju_wf(
         taxon_rank=taxon_rank,
     )
 
-    kaiju_outs = map_task(taxonomy_classification_task)(kaiju_input=kaiju_inputs)
+    kaiju_outfiles = map_task(taxonomy_classification_task)(kaiju_input=kaiju_inputs)
+
+    kaiju_outs = organize_kaiju_outs(
+        kaiju_inputs=kaiju_inputs, kaiju_outs=kaiju_outfiles
+    )
+
     kaiju2krona_out = map_task(kaiju2krona_task)(kaiju_out=kaiju_outs)
-    krona_plots = map_task(plot_krona_task)(krona_input=kaiju2krona_out)
+
+    krona_ins = organize_krona_inputs(samples=samples, krona_txts=kaiju2krona_out)
+
+    krona_plots = map_task(plot_krona_task)(krona_input=krona_ins)
 
     # return kaiju2table_out, krona_plot
     return krona_plots
