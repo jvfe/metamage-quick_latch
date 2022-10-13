@@ -11,13 +11,3 @@ class Sample:
     read1: LatchFile
     read2: LatchFile
     sample_name: str
-
-
-class TaxonRank(Enum):
-    superkingdom = "superkingdom"
-    phylum = "phylum"
-    taxon_class = "class"
-    order = "order"
-    family = "family"
-    genus = "genus"
-    species = "species"
