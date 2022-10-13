@@ -15,7 +15,6 @@ from .types import Sample
 @dataclass_json
 @dataclass
 class WfResults:
-    # taxonomy_results: List[LatchFile]
     assembly_results: List[LatchDir]
     binning_results: List[LatchDir]
 
