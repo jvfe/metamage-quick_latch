@@ -6,32 +6,35 @@ from latch import small_task, workflow
 from latch.resources.launch_plan import LaunchPlan
 from latch.types import LatchDir, LatchFile
 
-from .assembly import AssemblyOut, assembly_wf
+from .assembly import assembly_wf
 from .binning import binning_wf
 from .docs import megs_DOCS
-from .types import Sample
+from .functional import FunctionalOutput, functional_wf
+from .types import ProdigalOutput, Sample, fARGeneModel
 
 
 @dataclass_json
 @dataclass
 class WfResults:
-    assembly_results: List[LatchDir]
     binning_results: List[LatchDir]
+    prodigal_results: List[LatchDir]
+    macrel_results: List[LatchDir]
+    fargene_results: List[LatchDir]
+    gecco_results: List[LatchDir]
 
 
 @small_task
 def organize_final_outputs(
-    assembly_results: List[AssemblyOut],
+    functional_results: List[FunctionalOutput],
     binning_results: List[LatchDir],
 ) -> WfResults:
 
-    metaquast_results = [
-        assembly_result.evaluation for assembly_result in assembly_results
-    ]
-
     return WfResults(
-        assembly_results=metaquast_results,
         binning_results=binning_results,
+        prodigal_results=[func.prodigal_result for func in functional_results],
+        macrel_results=[func.macrel_result for func in functional_results],
+        fargene_results=[func.fargene_result for func in functional_results],
+        gecco_results=[func.gecco_result for func in functional_results],
     )
 
 
@@ -43,6 +46,8 @@ def megs(
     k_max: int = 141,
     k_step: int = 12,
     min_contig_len: int = 200,
+    prodigal_output_format: ProdigalOutput = ProdigalOutput.gbk,
+    fargene_hmm_model: fARGeneModel = fARGeneModel.class_a,
 ) -> WfResults:
     """Metagenomic assembly with MEGAHit
 
@@ -64,8 +69,15 @@ def megs(
     # Binning
     binning_results = binning_wf(samples=samples, megahit_out=assembly_dirs)
 
+    # Functional
+    functional_results = functional_wf(
+        assembly_data=assembly_dirs,
+        prodigal_output_format=prodigal_output_format,
+        fargene_hmm_model=fargene_hmm_model,
+    )
+
     organized_outputs = organize_final_outputs(
-        assembly_results=assembly_dirs,
+        functional_results=functional_results,
         binning_results=binning_results,
     )
 
@@ -93,5 +105,7 @@ LaunchPlan(
         "k_max": 141,
         "k_step": 12,
         "min_contig_len": 200,
+        "prodigal_output_format": ProdigalOutput.gff,
+        "fargene_hmm_model": fARGeneModel.class_b_1_2,
     },
 )
