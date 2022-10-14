@@ -9,7 +9,7 @@ from typing import List, Tuple
 
 from dataclasses_json import dataclass_json
 from latch import large_task, map_task, message, small_task, workflow
-from latch.types import LatchDir
+from latch.types import LatchDir, LatchFile
 
 from .types import Sample
 
@@ -17,7 +17,9 @@ from .types import Sample
 @dataclass_json
 @dataclass
 class MegaHitInput:
-    read_data: Sample
+    sample_name: str
+    read1: LatchFile
+    read2: LatchFile
     min_count: int
     k_min: int
     k_max: int
@@ -51,7 +53,9 @@ def organize_megahit_inputs(
     inputs = []
     for sample in samples:
         cur_input = MegaHitInput(
-            read_data=sample,
+            sample_name=sample.sample_name,
+            read1=sample.read1,
+            read2=sample.read2,
             min_count=min_count,
             k_min=k_min,
             k_max=k_max,
@@ -67,7 +71,7 @@ def organize_megahit_inputs(
 @large_task
 def megahit(megahit_input: MegaHitInput) -> LatchDir:
 
-    sample_name = megahit_input.read_data.sample_name
+    sample_name = megahit_input.sample_name
     output_dir_name = "MEGAHIT"
     output_dir = Path(output_dir_name).resolve()
 
@@ -88,9 +92,9 @@ def megahit(megahit_input: MegaHitInput) -> LatchDir:
         "--min-contig-len",
         str(megahit_input.min_contig_len),
         "-1",
-        megahit_input.read_data.read1.local_path,
+        megahit_input.read1.local_path,
         "-2",
-        megahit_input.read_data.read2.local_path,
+        megahit_input.read2.local_path,
     ]
     message(
         "info",
