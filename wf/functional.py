@@ -85,7 +85,7 @@ def macrel(functional_in: FunctionalInput) -> LatchDir:
     )
     subprocess.run(_macrel_cmd)
 
-    return LatchDir(str(outdir), f"latch:///metamage/{sample_name}/{output_dir_name}")
+    return LatchDir(str(outdir), f"latch:///megs/{sample_name}/{output_dir_name}")
 
 
 @small_task
@@ -119,7 +119,7 @@ def fargene(functional_in: FunctionalInput) -> LatchDir:
     )
     subprocess.run(_fargene_cmd)
 
-    return LatchDir(str(outdir), f"latch:///metamage/{sample_name}/{output_dir_name}")
+    return LatchDir(str(outdir), f"latch:///megs/{sample_name}/{output_dir_name}")
 
 
 @small_task
@@ -153,7 +153,7 @@ def gecco(functional_in: FunctionalInput) -> LatchDir:
     )
     subprocess.run(_gecco_cmd)
 
-    return LatchDir(str(outdir), f"latch:///metamage/{sample_name}/{output_dir_name}")
+    return LatchDir(str(outdir), f"latch:///megs/{sample_name}/{output_dir_name}")
 
 
 @medium_task
@@ -200,7 +200,7 @@ def prodigal(functional_in: FunctionalInput) -> LatchDir:
     subprocess.run(_prodigal_cmd)
 
     return LatchDir(
-        str(output_dir), f"latch:///metamage/{sample_name}/{output_dir_name}"
+        str(output_dir), f"latch:///megs/{sample_name}/{output_dir_name}"
     )
 
 

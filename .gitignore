@@ -178,3 +178,5 @@ cython_debug/
 .latch_report.tar.gz
 .logs/
 cache.txt
+.ssh_key
+.ssh_key.pub
