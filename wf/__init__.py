@@ -9,8 +9,9 @@ from latch.types import LatchDir, LatchFile
 from .assembly import AssemblyOut, assembly_wf
 from .binning import binning_wf
 from .docs import megs_DOCS
+from .functional import FunctionalOutput, functional_wf
 from .kaiju import kaiju_wf
-from .types import Sample, TaxonRank
+from .types import ProdigalOutput, Sample, TaxonRank, fARGeneModel
 
 
 @dataclass_json
@@ -20,6 +21,10 @@ class WfResults:
     binning_results: List[LatchDir]
     krona_plots: List[LatchFile]
     kaiju2table_outs: List[LatchFile]
+    prodigal_results: List[LatchDir]
+    macrel_results: List[LatchDir]
+    fargene_results: List[LatchDir]
+    gecco_results: List[LatchDir]
 
 
 @small_task
@@ -28,6 +33,7 @@ def organize_final_outputs(
     binning_results: List[LatchDir],
     krona_plots: List[LatchFile],
     kaiju2table_outs: List[LatchFile],
+    functional_results: List[FunctionalOutput],
 ) -> WfResults:
 
     metaquast_results = [
@@ -39,6 +45,10 @@ def organize_final_outputs(
         binning_results=binning_results,
         krona_plots=krona_plots,
         kaiju2table_outs=kaiju2table_outs,
+        prodigal_results=[func.prodigal_result for func in functional_results],
+        macrel_results=[func.macrel_result for func in functional_results],
+        fargene_results=[func.fargene_result for func in functional_results],
+        gecco_results=[func.gecco_result for func in functional_results],
     )
 
 
@@ -54,6 +64,8 @@ def megs(
     k_max: int = 141,
     k_step: int = 12,
     min_contig_len: int = 200,
+    prodigal_output_format: ProdigalOutput = ProdigalOutput.gbk,
+    fargene_hmm_model: fARGeneModel = fARGeneModel.class_a,
 ) -> WfResults:
     """Metagenomic assembly, binning and taxonomic classification
 
@@ -172,11 +184,19 @@ def megs(
         taxon_rank=taxon_rank,
     )
 
+    # Functional
+    functional_results = functional_wf(
+        assembly_data=assembly_dirs,
+        prodigal_output_format=prodigal_output_format,
+        fargene_hmm_model=fargene_hmm_model,
+    )
+
     organized_outputs = organize_final_outputs(
         assembly_results=assembly_dirs,
         binning_results=binning_results,
         krona_plots=krona_plots,
         kaiju2table_outs=kaiju2table_outs,
+        functional_results=functional_results,
     )
 
     return organized_outputs
@@ -213,5 +233,7 @@ LaunchPlan(
             "s3://latch-public/test-data/4318/virus_names.dmp"
         ),
         "taxon_rank": TaxonRank.species,
+        "prodigal_output_format": ProdigalOutput.gff,
+        "fargene_hmm_model": fARGeneModel.class_b_1_2,
     },
 )

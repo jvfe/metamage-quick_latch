@@ -54,4 +54,13 @@ megs_DOCS.parameters = {
         display_name="Taxonomic rank (kaiju2table)",
         description="Taxonomic rank for summary table output (kaiju2table).",
     ),
+    "prodigal_output_format": LatchParameter(
+        display_name="Prodigal output file format",
+        description="Specify main output file format (one of gbk, gff or sco).",
+        section_title="Functional analysis parameters",
+    ),
+    "fargene_hmm_model": LatchParameter(
+        display_name="fARGene's HMM model",
+        description="The Hidden Markov Model that should be used to predict ARGs from the data",
+    ),
 }
