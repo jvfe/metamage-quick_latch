@@ -182,7 +182,7 @@ def organize_metabat_inputs(
     return inputs
 
 
-@large_task(retries=2)
+@large_task
 def metabat2(metabat_input: MetaBatInput) -> LatchDir:
 
     sample_name = metabat_input.sample_name
