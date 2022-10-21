@@ -64,7 +64,7 @@ def organize_megahit_inputs(
     return inputs
 
 
-@large_task
+@large_task(retries=2)
 def megahit(megahit_input: MegaHitInput) -> LatchDir:
 
     sample_name = megahit_input.read_data.sample_name
