@@ -112,26 +112,6 @@ def taxonomy_classification_task(kaiju_input: KaijuSample) -> KaijuOut:
     )
 
 
-# @small_task
-# def organize_kaiju_outs(
-#     kaiju_inputs: List[KaijuSample], kaiju_outs: List[LatchFile]
-# ) -> List[KaijuOut]:
-
-#     outputs = []
-
-#     for kaiju_input, kaiju_out in zip(kaiju_inputs, kaiju_outs):
-#         cur_output = KaijuOut(
-#             sample_name=kaiju_input.sample_name,
-#             kaiju_out=kaiju_out,
-#             kaiju_ref_nodes=kaiju_input.kaiju_ref_nodes,
-#             kaiju_ref_names=kaiju_input.kaiju_ref_names,
-#             taxon_rank=kaiju_input.taxon_rank,
-#         )
-#         outputs.append(cur_output)
-
-#     return outputs
-
-
 @small_task
 def kaiju2table_task(kaiju_out: KaijuOut) -> LatchFile:
     """Convert Kaiju output to TSV format"""
@@ -193,21 +173,6 @@ def kaiju2krona_task(kaiju_out: KaijuOut) -> KronaInput:
     )
 
 
-# @small_task
-# def organize_krona_inputs(
-#     samples: List[Sample], krona_txts: List[LatchFile]
-# ) -> List[KronaInput]:
-
-#     krona_ins = []
-
-#     for sample, krona_txt in zip(samples, krona_txts):
-
-#         cur_in = KronaInput(sample_name=sample.sample_name, krona_txt=krona_txt)
-#         krona_ins.append(cur_in)
-
-#     return krona_ins
-
-
 @small_task
 def plot_krona_task(krona_input: KronaInput) -> LatchFile:
     """Make Krona plot from Kaiju results"""
@@ -248,16 +213,9 @@ def kaiju_wf(
 
     kaiju_outfiles = map_task(taxonomy_classification_task)(kaiju_input=kaiju_inputs)
 
-    # kaiju_outs = organize_kaiju_outs(
-    # kaiju_inputs=kaiju_inputs, kaiju_outs=kaiju_outfiles
-    # )
-
     kaiju2table_out = map_task(kaiju2table_task)(kaiju_out=kaiju_outfiles)
     kaiju2krona_out = map_task(kaiju2krona_task)(kaiju_out=kaiju_outfiles)
-
-    # krona_ins = organize_krona_inputs(samples=samples, krona_txts=kaiju2krona_out)
 
     krona_plots = map_task(plot_krona_task)(krona_input=kaiju2krona_out)
 
     return kaiju2table_out, krona_plots
-    # return krona_plots
