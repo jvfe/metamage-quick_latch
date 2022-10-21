@@ -20,17 +20,6 @@ ENV PATH=$CONDA_DIR/bin:$PATH
 # Get Mamba
 RUN conda install mamba -n base -c conda-forge
 
-# Get Macrel
-RUN mamba install -y -c bioconda macrel
-
-# Get FarGene
-RUN mamba create -y -n fargene_env python=2.7
-RUN mamba install -y -n fargene_env -c bioconda fargene
-ENV PATH=$CONDA_DIR/envs/fargene_env/bin:$PATH
-
-# Get Gecco
-RUN pip3 install gecco-tool
-
 # Get MegaHIT and Quast
 RUN mamba create -y -n metassembly python=3.6
 RUN mamba install -y -n metassembly -c bioconda megahit quast
@@ -43,6 +32,18 @@ RUN ln -s $META_ENV/megahit /root/megahit &&\
 # Install metabat2
 
 RUN mamba install -y -c bioconda metabat2
+
+# Get Macrel
+RUN mamba install -y -c bioconda macrel
+
+# Get FarGene
+RUN mamba create -y -n fargene_env python=2.7
+RUN mamba install -y -n fargene_env -c bioconda fargene
+ENV PATH=$CONDA_DIR/envs/fargene_env/bin:$PATH
+
+# Get Gecco
+RUN pip3 install gecco-tool
+
 
 # Kaiju installation
 RUN curl -L \
