@@ -8,9 +8,8 @@ from latch.types import LatchDir, LatchFile
 
 from .assembly import AssemblyOut, assembly_wf
 from .binning import binning_wf
-from .kaiju import kaiju_wf
-
 from .docs import megs_DOCS
+from .kaiju import kaiju_wf
 from .types import Sample, TaxonRank
 
 
@@ -56,12 +55,51 @@ def megs(
     k_step: int = 12,
     min_contig_len: int = 200,
 ) -> WfResults:
-    """Metagenomic assembly with MEGAHit
+    """Metagenomic assembly, binning and taxonomic classification
 
-    megs
+    metamage-quick
     ----------
 
-    megs assembles metagenomic reads with MEGAHit.
+    metamage-quick is a workflow for taxonomic classification, assembly
+    and binning of short-read host-associated metagenomics datasets.
+
+    It's composed of:
+
+    ## Assembly
+
+    - [MEGAHIT](https://github.com/voutcn/megahit) for assembly [^1]
+    - [MetaQuast](https://github.com/ablab/quast) for assembly evaluation
+
+    ## Binning
+
+    - BowTie2 and [Samtools](https://github.com/samtools/samtools)[^11] to
+      building depth files for binning.
+    - [MetaBAT2](https://bitbucket.org/berkeleylab/metabat/src/master/) for
+      binning [^2]
+
+    ## Taxonomic classification of reads
+
+    - [Kaiju](https://github.com/bioinformatics-centre/kaiju) for
+      taxonomic classification [^3]
+    - [KronaTools](https://github.com/marbl/Krona/wiki/KronaTools) for
+      visualizing taxonomic classification results
+
+    # Output tree
+
+    - |megs
+      - |{sample_name}
+        - |kaiju
+        - |MEGAHIT
+        - |MetaQuast - Assembly evaluation report
+        - |{sample_name}_assembly_idx - BowTie Index from assembly data
+        - |{sample_name}_assembly_sorted.bam - Reads aligned to assembly contigs
+        - |METABAT
+
+    # Where to get the data?
+
+    - Kaiju indexes can be generated based on a reference database but
+      you can also find some pre-built ones in the sidebar of the
+      [Kaiju website](https://kaiju.binf.ku.dk/server).
     """
 
     assembly_dirs = assembly_wf(

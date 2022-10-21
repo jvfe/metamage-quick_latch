@@ -1,13 +1,13 @@
 from latch.types import LatchAuthor, LatchMetadata, LatchParameter
 
 megs_DOCS = LatchMetadata(
-    display_name="megs",
-    documentation="https://github.com/jvfe/megs_latch/blob/main/README.md",
+    display_name="metamage-quick",
+    documentation="https://github.com/jvfe/metamage-quick_latch/blob/main/README.md",
     author=LatchAuthor(
         name="jvfe",
         github="https://github.com/jvfe",
     ),
-    repository="https://github.com/jvfe/megs_latch",
+    repository="https://github.com/jvfe/metamage-quick",
     license="MIT",
     tags=["NGS", "metagenomics", "MAG"],
 )
