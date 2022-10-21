@@ -11,6 +11,22 @@ RUN curl -L https://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.4.4/bowt
 RUN apt-get update -y &&\
     apt-get install -y autoconf samtools
 
+# Kaiju installation
+RUN curl -L \
+    https://github.com/bioinformatics-centre/kaiju/releases/download/v1.9.0/kaiju-v1.9.0-linux-x86_64.tar.gz -o kaiju-v1.9.0.tar.gz &&\
+    tar -xvf kaiju-v1.9.0.tar.gz
+
+ENV PATH /root/kaiju-v1.9.0-linux-x86_64-static:$PATH
+
+# Krona installation
+RUN curl -L \
+    https://github.com/marbl/Krona/releases/download/v2.8.1/KronaTools-2.8.1.tar \
+    -o KronaTools-2.8.1.tar &&\
+    tar -xvf KronaTools-2.8.1.tar &&\
+    cd KronaTools-2.8.1 &&\
+    ./install.pl
+
+
 # Get miniconda
 RUN curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh --output miniconda.sh
 ENV CONDA_DIR /opt/conda
@@ -19,17 +35,6 @@ ENV PATH=$CONDA_DIR/bin:$PATH
 
 # Get Mamba
 RUN conda install mamba -n base -c conda-forge
-
-# Get Macrel
-RUN mamba install -y -c bioconda macrel
-
-# Get FarGene
-RUN mamba create -y -n fargene_env python=2.7
-RUN mamba install -y -n fargene_env -c bioconda fargene
-ENV PATH=$CONDA_DIR/envs/fargene_env/bin:$PATH
-
-# Get Gecco
-RUN pip3 install gecco-tool
 
 # Get MegaHIT and Quast
 RUN mamba create -y -n metassembly python=3.6
@@ -42,7 +47,7 @@ RUN ln -s $META_ENV/megahit /root/megahit &&\
 
 # Install metabat2
 
-RUN mamba install -y -c bioconda metabat2
+RUN conda install -y -c bioconda metabat2
 
 # STOP HERE:
 # The following lines are needed to ensure your build environement works
@@ -52,4 +57,3 @@ COPY wf /root/wf
 ARG tag
 ENV FLYTE_INTERNAL_IMAGE $tag
 WORKDIR /root
-
