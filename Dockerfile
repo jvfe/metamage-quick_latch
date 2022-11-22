@@ -1,6 +1,7 @@
 FROM 812206152185.dkr.ecr.us-west-2.amazonaws.com/latch-base:6839-main
 
-RUN apt-get install -y curl unzip libz-dev
+RUN apt-get update -y &&\
+    apt-get install -y curl unzip libz-dev
 
 # BowTie2
 RUN curl -L https://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.4.4/bowtie2-2.4.4-linux-x86_64.zip/download -o bowtie2-2.4.4.zip &&\
@@ -56,7 +57,7 @@ ENV PATH /root/kaiju-v1.9.0-linux-x86_64-static:$PATH
 RUN curl -L \
     https://github.com/marbl/Krona/releases/download/v2.8.1/KronaTools-2.8.1.tar \
     -o KronaTools-2.8.1.tar &&\
-    tar -xvf KronaTools-2.8.1.tar &&\
+    tar -xvf KronaTools-2.8.1.tar --no-same-owner &&\
     cd KronaTools-2.8.1 &&\
     ./install.pl
 
