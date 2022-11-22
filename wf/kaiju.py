@@ -92,13 +92,7 @@ def taxonomy_classification_task(kaiju_input: KaijuSample) -> KaijuOut:
         "-o",
         str(kaiju_out),
     ]
-    message(
-        "info",
-        {
-            "title": "Taxonomically classifying reads with Kaiju",
-            "body": f"Command: {' '.join(_kaiju_cmd)}",
-        },
-    )
+
     subprocess.run(_kaiju_cmd)
 
     return KaijuOut(

@@ -76,13 +76,7 @@ def macrel(functional_in: FunctionalInput) -> LatchDir:
         "--threads",
         "8",
     ]
-    message(
-        "info",
-        {
-            "title": "Detecting anti-microbial peptides in contigs with Macrel",
-            "body": f"Command: {' '.join(_macrel_cmd)}",
-        },
-    )
+
     subprocess.run(_macrel_cmd)
 
     return LatchDir(str(outdir), f"latch:///metamage/{sample_name}/{output_dir_name}")
@@ -110,13 +104,7 @@ def fargene(functional_in: FunctionalInput) -> LatchDir:
         "-p",
         "8",
     ]
-    message(
-        "info",
-        {
-            "title": "Detecting antibiotic resistance genes in contigs with fARGene",
-            "body": f"Command: {' '.join(_fargene_cmd)}",
-        },
-    )
+
     subprocess.run(_fargene_cmd)
 
     return LatchDir(str(outdir), f"latch:///metamage/{sample_name}/{output_dir_name}")
@@ -144,13 +132,7 @@ def gecco(functional_in: FunctionalInput) -> LatchDir:
         "4",
         "--force-tsv",
     ]
-    message(
-        "info",
-        {
-            "title": "Detecting bacterial gene clusters in contigs with Gecco",
-            "body": f"Command: {' '.join(_gecco_cmd)}",
-        },
-    )
+
     subprocess.run(_gecco_cmd)
 
     return LatchDir(str(outdir), f"latch:///metamage/{sample_name}/{output_dir_name}")
@@ -190,13 +172,7 @@ def prodigal(functional_in: FunctionalInput) -> LatchDir:
         "-s",
         str(output_scores),
     ]
-    message(
-        "info",
-        {
-            "title": "Predicting protein-coding genes in contigs with Prodigal",
-            "body": f"Command: {' '.join(_prodigal_cmd)}",
-        },
-    )
+
     subprocess.run(_prodigal_cmd)
 
     return LatchDir(

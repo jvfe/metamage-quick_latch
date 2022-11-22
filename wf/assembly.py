@@ -92,13 +92,7 @@ def megahit(megahit_input: MegaHitInput) -> LatchDir:
         "-2",
         megahit_input.read_data.read2.local_path,
     ]
-    message(
-        "info",
-        {
-            "title": "Assembling reads into contigs with MEGAHit",
-            "body": f"Command: {' '.join(_megahit_cmd)}",
-        },
-    )
+    
     subprocess.run(_megahit_cmd)
 
     return LatchDir(str(output_dir), f"latch:///megs/{sample_name}/{output_dir_name}")
@@ -139,13 +133,7 @@ def metaquast(megahit_out: MegaHitOut) -> LatchDir:
         output_dir_name,
         str(assembly_fasta),
     ]
-    message(
-        "info",
-        {
-            "title": "Evaluating assembly with MetaQuast",
-            "body": f"Command: {' '.join(_metaquast_cmd)}",
-        },
-    )
+    
     subprocess.run(_metaquast_cmd)
 
     return LatchDir(str(output_dir), f"latch:///megs/{sample_name}/{output_dir_name}")

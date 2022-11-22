@@ -202,13 +202,7 @@ def metabat2(metabat_input: MetaBatInput) -> LatchDir:
         "-o",
         output_dir_name,
     ]
-    message(
-        "info",
-        {
-            "title": "Binning contigs with MetaBat2",
-            "body": f"Command: {' '.join(_metabat_cmd)}",
-        },
-    )
+
     subprocess.run(_metabat_cmd)
 
     return LatchDir(str(output_dir), f"latch:///megs/{sample_name}/METABAT/")
