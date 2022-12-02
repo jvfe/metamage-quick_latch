@@ -59,7 +59,10 @@ RUN curl -L \
     -o KronaTools-2.8.1.tar &&\
     tar -xvf KronaTools-2.8.1.tar --no-same-owner &&\
     cd KronaTools-2.8.1 &&\
-    ./install.pl
+    mkdir -p /root/Krona &&\
+    ./install.pl --prefix /root/Krona
+
+ENV PATH /root/Krona/bin:$PATH
 
 # Install Prodigal
 RUN curl -L https://github.com/hyattpd/Prodigal/releases/download/v2.6.3/prodigal.linux -o prodigal &&\

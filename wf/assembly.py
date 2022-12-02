@@ -9,7 +9,7 @@ from typing import List, Tuple
 
 from dataclasses_json import dataclass_json
 from latch import large_task, map_task, message, small_task, workflow
-from latch.types import LatchDir
+from latch.types import LatchDir, LatchFile
 
 from .types import Sample
 
@@ -29,7 +29,7 @@ class MegaHitInput:
 @dataclass
 class MegaHitOut:
     sample_name: str
-    assembly_data: LatchDir
+    assembly_data: LatchFile
 
 
 @dataclass_json
@@ -65,11 +65,10 @@ def organize_megahit_inputs(
 
 
 @large_task
-def megahit(megahit_input: MegaHitInput) -> LatchDir:
+def megahit(megahit_input: MegaHitInput) -> MegaHitOut:
 
     sample_name = megahit_input.read_data.sample_name
-    output_dir_name = "MEGAHIT"
-    output_dir = Path(output_dir_name).resolve()
+    output_dir_name = f"{sample_name}_MEGAHIT"
 
     _megahit_cmd = [
         "/root/megahit",
@@ -92,33 +91,28 @@ def megahit(megahit_input: MegaHitInput) -> LatchDir:
         "-2",
         megahit_input.read_data.read2.local_path,
     ]
-    
+
     subprocess.run(_megahit_cmd)
 
-    return LatchDir(str(output_dir), f"latch:///megs/{sample_name}/{output_dir_name}")
+    megahit_output = Path(output_dir_name, f"{sample_name}.contigs.fa").resolve()
 
-
-@small_task
-def organize_megahit_outs(
-    samples: List[Sample], assembly_data: List[LatchDir]
-) -> List[MegaHitOut]:
-
-    outs = []
-    for sample, assembly in zip(samples, assembly_data):
-        cur_out = MegaHitOut(sample_name=sample.sample_name, assembly_data=assembly)
-        outs.append(cur_out)
-
-    return outs
+    return MegaHitOut(
+        sample_name=sample_name,
+        assembly_data=LatchFile(
+            str(megahit_output),
+            f"latch:///megs/{sample_name}/MEGAHIT/{sample_name}.contigs.fa",
+        ),
+    )
 
 
 @small_task
 def metaquast(megahit_out: MegaHitOut) -> LatchDir:
 
+    print(megahit_out.assembly_data.local_path)
     sample_name = megahit_out.sample_name
-    assembly_name = f"{sample_name}.contigs.fa"
-    assembly_fasta = Path(megahit_out.assembly_data.local_path, assembly_name)
+    assembly_fasta = megahit_out.assembly_data.local_path
 
-    output_dir_name = "MetaQuast"
+    output_dir_name = f"{sample_name}_MetaQuast"
     output_dir = Path(output_dir_name).resolve()
 
     _metaquast_cmd = [
@@ -133,7 +127,7 @@ def metaquast(megahit_out: MegaHitOut) -> LatchDir:
         output_dir_name,
         str(assembly_fasta),
     ]
-    
+
     subprocess.run(_metaquast_cmd)
 
     return LatchDir(str(output_dir), f"latch:///megs/{sample_name}/{output_dir_name}")
@@ -180,10 +174,8 @@ def assembly_wf(
     # Assembly
     assembly_data = map_task(megahit)(megahit_input=megahit_inputs)
 
-    megahit_outs = organize_megahit_outs(samples=samples, assembly_data=assembly_data)
-
-    metaquast_results = map_task(metaquast)(megahit_out=megahit_outs)
+    metaquast_results = map_task(metaquast)(megahit_out=assembly_data)
 
     return organize_assembly_outs(
-        megahit_outs=megahit_outs, metaquast_results=metaquast_results
+        megahit_outs=assembly_data, metaquast_results=metaquast_results
     )

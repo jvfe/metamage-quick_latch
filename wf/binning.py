@@ -15,7 +15,7 @@ from .types import Sample
 @dataclass_json
 @dataclass
 class BwAlignInput:
-    assembly_index: LatchDir
+    assembly_data: LatchFile
     read_data: Sample
 
 
@@ -30,16 +30,32 @@ class JgiInput:
 @dataclass
 class MetaBatInput:
     sample_name: str
-    assembly_data: LatchDir
+    assembly_data: LatchFile
     depth_file: LatchFile
 
 
-@large_task
-def bowtie_assembly_build(megahit_out: AssemblyOut) -> LatchDir:
+@small_task
+def organize_bw_inputs(
+    assembly_outs: List[AssemblyOut], samples: List[Sample]
+) -> List[BwAlignInput]:
 
-    sample_name = megahit_out.sample_name
-    assembly_name = f"{sample_name}.contigs.fa"
-    assembly_fasta = Path(megahit_out.assembly_data.local_path, assembly_name)
+    inputs = []
+    for sample, assembly_out in zip(samples, assembly_outs):
+        cur_input = BwAlignInput(
+            assembly_data=assembly_out.assembly_data, read_data=sample
+        )
+
+        inputs.append(cur_input)
+
+    return inputs
+
+
+@large_task
+def run_bowtie(bwalign_input: BwAlignInput) -> LatchFile:
+
+    sample_name = bwalign_input.read_data.sample_name
+
+    assembly_fasta = Path(bwalign_input.assembly_data.local_path)
 
     output_dir_name = f"{sample_name}_assembly_idx"
     output_dir = Path(output_dir_name).resolve()
@@ -55,27 +71,6 @@ def bowtie_assembly_build(megahit_out: AssemblyOut) -> LatchDir:
 
     subprocess.run(_bt_idx_cmd)
 
-    return LatchDir(str(output_dir), f"latch:///megs/{sample_name}/{output_dir_name}")
-
-
-@small_task
-def organize_bwalign_inputs(
-    assembly_idxs: List[LatchDir], samples: List[Sample]
-) -> List[BwAlignInput]:
-
-    inputs = []
-    for sample, assembly_idx in zip(samples, assembly_idxs):
-        cur_input = BwAlignInput(assembly_index=assembly_idx, read_data=sample)
-
-        inputs.append(cur_input)
-
-    return inputs
-
-
-@large_task
-def bowtie_assembly_align(bwalign_input: BwAlignInput) -> LatchFile:
-
-    sample_name = bwalign_input.read_data.sample_name
     output_file_name = f"{sample_name}_assembly_sorted.bam"
 
     output_file = Path(output_file_name).resolve()
@@ -83,7 +78,7 @@ def bowtie_assembly_align(bwalign_input: BwAlignInput) -> LatchFile:
     _bt_cmd = [
         "bowtie2/bowtie2",
         "-x",
-        f"{bwalign_input.assembly_index.local_path}/{sample_name}",
+        f"{str(output_dir)}/{sample_name}",
         "-1",
         bwalign_input.read_data.read1.local_path,
         "-2",
@@ -186,8 +181,7 @@ def organize_metabat_inputs(
 def metabat2(metabat_input: MetaBatInput) -> LatchDir:
 
     sample_name = metabat_input.sample_name
-    assembly_name = f"{sample_name}.contigs.fa"
-    assembly_fasta = Path(metabat_input.assembly_data.local_path, assembly_name)
+    assembly_fasta = Path(metabat_input.assembly_data.local_path)
 
     output_dir_name = f"METABAT/{sample_name}"
     output_dir = Path(output_dir_name).parent.resolve()
@@ -211,14 +205,10 @@ def metabat2(metabat_input: MetaBatInput) -> LatchDir:
 @workflow
 def binning_wf(samples: List[Sample], megahit_out: List[AssemblyOut]) -> List[LatchDir]:
 
+    bwalign_inputs = organize_bw_inputs(assembly_outs=megahit_out, samples=samples)
+
     # Binning preparation
-    built_assembly_idxs = map_task(bowtie_assembly_build)(megahit_out=megahit_out)
-
-    bwalign_inputs = organize_bwalign_inputs(
-        assembly_idxs=built_assembly_idxs, samples=samples
-    )
-
-    aligned_to_assembly = map_task(bowtie_assembly_align)(bwalign_input=bwalign_inputs)
+    aligned_to_assembly = map_task(run_bowtie)(bwalign_input=bwalign_inputs)
 
     jgi_inputs = organize_jgi_inputs(samples=samples, assembly_bams=aligned_to_assembly)
 

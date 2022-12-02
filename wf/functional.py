@@ -5,7 +5,7 @@ from typing import List
 
 from dataclasses_json import dataclass_json
 from latch import map_task, medium_task, message, small_task, workflow
-from latch.types import LatchDir
+from latch.types import LatchDir, LatchFile
 
 from .assembly import AssemblyOut
 from .types import ProdigalOutput, fARGeneModel
@@ -15,7 +15,7 @@ from .types import ProdigalOutput, fARGeneModel
 @dataclass
 class FunctionalInput:
     sample_name: str
-    assembly_data: LatchDir
+    assembly_data: LatchFile
     prodigal_output_format: ProdigalOutput
     fargene_hmm_model: fARGeneModel
 
@@ -56,8 +56,7 @@ def macrel(functional_in: FunctionalInput) -> LatchDir:
 
     # Assembly data
     sample_name = functional_in.sample_name
-    assembly_name = f"{sample_name}.contigs.fa"
-    assembly_fasta = Path(functional_in.assembly_data.local_path, assembly_name)
+    assembly_fasta = Path(functional_in.assembly_data.local_path)
 
     output_dir_name = "macrel_results"
     outdir = Path(output_dir_name).resolve()
@@ -87,8 +86,7 @@ def fargene(functional_in: FunctionalInput) -> LatchDir:
 
     # Assembly data
     sample_name = functional_in.sample_name
-    assembly_name = f"{sample_name}.contigs.fa"
-    assembly_fasta = Path(functional_in.assembly_data.local_path, assembly_name)
+    assembly_fasta = Path(functional_in.assembly_data.local_path)
 
     output_dir_name = "fargene_results"
     outdir = Path(output_dir_name).resolve()
@@ -115,8 +113,7 @@ def gecco(functional_in: FunctionalInput) -> LatchDir:
 
     # Assembly data
     sample_name = functional_in.sample_name
-    assembly_name = f"{sample_name}.contigs.fa"
-    assembly_fasta = Path(functional_in.assembly_data.local_path, assembly_name)
+    assembly_fasta = Path(functional_in.assembly_data.local_path)
 
     output_dir_name = "gecco_results"
     outdir = Path(output_dir_name).resolve()
@@ -143,8 +140,7 @@ def prodigal(functional_in: FunctionalInput) -> LatchDir:
 
     # Assembly data
     sample_name = functional_in.sample_name
-    assembly_name = f"{sample_name}.contigs.fa"
-    assembly_fasta = Path(functional_in.assembly_data.local_path, assembly_name)
+    assembly_fasta = Path(functional_in.assembly_data.local_path)
 
     # A reference to our output.
     output_format = functional_in.prodigal_output_format
