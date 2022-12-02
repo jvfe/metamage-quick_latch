@@ -195,7 +195,7 @@ def kaiju_wf(
     kaiju_ref_nodes: LatchFile,
     kaiju_ref_names: LatchFile,
     taxon_rank: TaxonRank,
-) -> Tuple[List[LatchFile], List[LatchFile]]:
+) -> List[LatchFile]:
 
     kaiju_inputs = organize_kaiju_inputs(
         samples=samples,
@@ -208,8 +208,5 @@ def kaiju_wf(
     kaiju_outfiles = map_task(taxonomy_classification_task)(kaiju_input=kaiju_inputs)
 
     kaiju2table_out = map_task(kaiju2table_task)(kaiju_out=kaiju_outfiles)
-    kaiju2krona_out = map_task(kaiju2krona_task)(kaiju_out=kaiju_outfiles)
 
-    krona_plots = map_task(plot_krona_task)(krona_input=kaiju2krona_out)
-
-    return kaiju2table_out, krona_plots
+    return kaiju2table_out

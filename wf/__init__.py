@@ -19,7 +19,6 @@ from .types import ProdigalOutput, Sample, TaxonRank, fARGeneModel
 class WfResults:
     assembly_results: List[LatchDir]
     binning_results: List[LatchDir]
-    krona_plots: List[LatchFile]
     kaiju2table_outs: List[LatchFile]
     prodigal_results: List[LatchDir]
     macrel_results: List[LatchDir]
@@ -31,7 +30,6 @@ class WfResults:
 def organize_final_outputs(
     assembly_results: List[AssemblyOut],
     binning_results: List[LatchDir],
-    krona_plots: List[LatchFile],
     kaiju2table_outs: List[LatchFile],
     functional_results: List[FunctionalOutput],
 ) -> WfResults:
@@ -43,7 +41,6 @@ def organize_final_outputs(
     return WfResults(
         assembly_results=metaquast_results,
         binning_results=binning_results,
-        krona_plots=krona_plots,
         kaiju2table_outs=kaiju2table_outs,
         prodigal_results=[func.prodigal_result for func in functional_results],
         macrel_results=[func.macrel_result for func in functional_results],
@@ -176,7 +173,7 @@ def megs(
     # Binning
     binning_results = binning_wf(samples=samples, megahit_out=assembly_dirs)
 
-    kaiju2table_outs, krona_plots = kaiju_wf(
+    kaiju2table_outs = kaiju_wf(
         samples=samples,
         kaiju_ref_db=kaiju_ref_db,
         kaiju_ref_nodes=kaiju_ref_nodes,
@@ -194,7 +191,6 @@ def megs(
     organized_outputs = organize_final_outputs(
         assembly_results=assembly_dirs,
         binning_results=binning_results,
-        krona_plots=krona_plots,
         kaiju2table_outs=kaiju2table_outs,
         functional_results=functional_results,
     )
