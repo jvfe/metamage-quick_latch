@@ -8,7 +8,7 @@ from latch.types import LatchDir, LatchFile
 
 from .assembly import AssemblyOut, assembly_wf
 from .binning import binning_wf
-from .docs import megs_DOCS
+from .docs import metamage_DOCS
 from .functional import FunctionalOutput, functional_wf
 from .kaiju import kaiju_wf
 from .types import ProdigalOutput, Sample, TaxonRank, fARGeneModel
@@ -49,8 +49,8 @@ def organize_final_outputs(
     )
 
 
-@workflow(megs_DOCS)
-def megs(
+@workflow(metamage_DOCS)
+def metamage(
     samples: List[Sample],
     kaiju_ref_db: LatchFile,
     kaiju_ref_nodes: LatchFile,
@@ -95,7 +95,7 @@ def megs(
 
     # Output tree
 
-    - |megs
+    - |metamage
       - |{sample_name}
         - |kaiju
         - |MEGAHIT
@@ -199,7 +199,7 @@ def megs(
 
 
 LaunchPlan(
-    megs,  # workflow name
+    metamage,  # workflow name
     "Example Metagenome (Crohn's disease gut microbiome)",  # name of test data
     {
         "samples": [

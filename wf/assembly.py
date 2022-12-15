@@ -100,7 +100,7 @@ def megahit(megahit_input: MegaHitInput) -> MegaHitOut:
         sample_name=sample_name,
         assembly_data=LatchFile(
             str(megahit_output),
-            f"latch:///megs/{sample_name}/MEGAHIT/{sample_name}.contigs.fa",
+            f"latch:///metamage/{sample_name}/MEGAHIT/{sample_name}.contigs.fa",
         ),
     )
 
@@ -130,7 +130,7 @@ def metaquast(megahit_out: MegaHitOut) -> LatchDir:
 
     subprocess.run(_metaquast_cmd)
 
-    return LatchDir(str(output_dir), f"latch:///megs/{sample_name}/{output_dir_name}")
+    return LatchDir(str(output_dir), f"latch:///metamage/{sample_name}/{output_dir_name}")
 
 
 @small_task

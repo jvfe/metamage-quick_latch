@@ -119,7 +119,7 @@ def run_bowtie(bwalign_input: BwAlignInput) -> LatchFile:
     )
 
     return LatchFile(
-        str(output_file), f"latch:///megs/{sample_name}/{output_file_name}"
+        str(output_file), f"latch:///metamage/{sample_name}/{output_file_name}"
     )
 
 
@@ -155,7 +155,7 @@ def summarize_contig_depths(jgi_input: JgiInput) -> LatchFile:
     subprocess.run(_jgi_cmd)
 
     return LatchFile(
-        str(output_file), f"latch:///megs/{sample_name}/{output_file_name}"
+        str(output_file), f"latch:///metamage/{sample_name}/{output_file_name}"
     )
 
 
@@ -199,7 +199,7 @@ def metabat2(metabat_input: MetaBatInput) -> LatchDir:
 
     subprocess.run(_metabat_cmd)
 
-    return LatchDir(str(output_dir), f"latch:///megs/{sample_name}/METABAT/")
+    return LatchDir(str(output_dir), f"latch:///metamage/{sample_name}/METABAT/")
 
 
 @workflow

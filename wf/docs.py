@@ -1,6 +1,6 @@
 from latch.types import LatchAuthor, LatchMetadata, LatchParameter
 
-megs_DOCS = LatchMetadata(
+metamage_DOCS = LatchMetadata(
     display_name="MetaMage-quick",
     documentation="https://github.com/jvfe/metamage-quick_latch/blob/main/README.md",
     author=LatchAuthor(
@@ -12,7 +12,7 @@ megs_DOCS = LatchMetadata(
     tags=["NGS", "metagenomics", "MAG"],
 )
 
-megs_DOCS.parameters = {
+metamage_DOCS.parameters = {
     "samples": LatchParameter(
         display_name="Sample data",
         description="Paired-end FASTQ files",

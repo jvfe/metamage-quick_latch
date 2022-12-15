@@ -28,7 +28,7 @@ It's composed of:
 
 # Output tree
 
-- |megs
+- |metamage
   - |{sample_name}
   - |kaiju
   - |MEGAHIT

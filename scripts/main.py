@@ -4,7 +4,7 @@ import wf.assembly
 from wf.assembly import AssemblyOut
 from wf.types import ProdigalOutput, Sample, TaxonRank, fARGeneModel
 
-wf.megs(
+wf.metamage(
     samples=[
         Sample(
             sample_name="SRR579291",
@@ -65,13 +65,13 @@ wf.megs(
 #     megahit_out=[
 #         AssemblyOut(
 #             sample_name="SRR579291",
-#             assembly_data=LatchFile("latch:///megs/SRR579291/SRR579291.contigs.fa"),
-#             evaluation=LatchDir("latch:///megs/SRR579291/SRR579291_MetaQuast"),
+#             assembly_data=LatchFile("latch:///metamage/SRR579291/SRR579291.contigs.fa"),
+#             evaluation=LatchDir("latch:///metamage/SRR579291/SRR579291_MetaQuast"),
 #         ),
 #         AssemblyOut(
 #             sample_name="SRR579292",
-#             assembly_data=LatchFile("latch:///megs/SRR579292/SRR579292.contigs.fa"),
-#             evaluation=LatchDir("latch:///megs/SRR579292/SRR579292_MetaQuast"),
+#             assembly_data=LatchFile("latch:///metamage/SRR579292/SRR579292.contigs.fa"),
+#             evaluation=LatchDir("latch:///metamage/SRR579292/SRR579292_MetaQuast"),
 #         ),
 #     ],
 # )

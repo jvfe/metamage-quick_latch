@@ -98,7 +98,7 @@ def taxonomy_classification_task(kaiju_input: KaijuSample) -> KaijuOut:
     return KaijuOut(
         sample_name=kaiju_input.sample_name,
         kaiju_out=LatchFile(
-            str(kaiju_out), f"latch:///megs/{sample_name}/kaiju/{output_name}"
+            str(kaiju_out), f"latch:///metamage/{sample_name}/kaiju/{output_name}"
         ),
         kaiju_ref_nodes=kaiju_input.kaiju_ref_nodes,
         kaiju_ref_names=kaiju_input.kaiju_ref_names,
@@ -133,7 +133,7 @@ def kaiju2table_task(kaiju_out: KaijuOut) -> LatchFile:
 
     return LatchFile(
         str(kaijutable_tsv),
-        f"latch:///megs/{sample_name}/kaiju/{output_name}",
+        f"latch:///metamage/{sample_name}/kaiju/{output_name}",
     )
 
 
@@ -162,7 +162,7 @@ def kaiju2krona_task(kaiju_out: KaijuOut) -> KronaInput:
     return KronaInput(
         sample_name=sample_name,
         krona_txt=LatchFile(
-            str(krona_txt), f"latch:///megs/{sample_name}/kaiju/{output_name}"
+            str(krona_txt), f"latch:///metamage/{sample_name}/kaiju/{output_name}"
         ),
     )
 
@@ -184,7 +184,7 @@ def plot_krona_task(krona_input: KronaInput) -> LatchFile:
     subprocess.run(_kaiju2krona_cmd)
 
     return LatchFile(
-        str(krona_html), f"latch:///megs/{sample_name}/kaiju/{output_name}"
+        str(krona_html), f"latch:///metamage/{sample_name}/kaiju/{output_name}"
     )
 
 
