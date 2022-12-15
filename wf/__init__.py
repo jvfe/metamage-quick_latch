@@ -50,7 +50,7 @@ def organize_final_outputs(
 
 
 @workflow(metamage_DOCS)
-def metamage(
+def metamage_quick(
     samples: List[Sample],
     kaiju_ref_db: LatchFile,
     kaiju_ref_nodes: LatchFile,
@@ -199,7 +199,7 @@ def metamage(
 
 
 LaunchPlan(
-    metamage,  # workflow name
+    metamage_quick,  # workflow name
     "Example Metagenome (Crohn's disease gut microbiome)",  # name of test data
     {
         "samples": [

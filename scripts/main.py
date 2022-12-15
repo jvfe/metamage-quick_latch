@@ -1,10 +1,9 @@
-from latch.types import LatchDir, LatchFile
-
 import wf.assembly
+from latch.types import LatchDir, LatchFile
 from wf.assembly import AssemblyOut
 from wf.types import ProdigalOutput, Sample, TaxonRank, fARGeneModel
 
-wf.metamage(
+wf.metamage_quick(
     samples=[
         Sample(
             sample_name="SRR579291",
